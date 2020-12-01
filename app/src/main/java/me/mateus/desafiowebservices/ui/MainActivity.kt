@@ -1,7 +1,8 @@
-package me.mateus.desafiowebservices
+package me.mateus.desafiowebservices.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import me.mateus.desafiowebservices.R
 
 class MainActivity : AppCompatActivity() {
 
