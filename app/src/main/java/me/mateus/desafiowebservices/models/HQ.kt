@@ -1,12 +1,14 @@
 package me.mateus.desafiowebservices.models
 
-class HQ {
+import java.io.Serializable
+
+class HQ : Serializable {
     var id: Int = 0
     var capaUrl: String = ""
     var titulo: String = ""
     var descricao: String = ""
     var dataPublicacao: String = ""
-    var preco: Double = 0.0
+    var preco: String = ""
     var paginas: Int = 0
 
     override fun toString(): String {

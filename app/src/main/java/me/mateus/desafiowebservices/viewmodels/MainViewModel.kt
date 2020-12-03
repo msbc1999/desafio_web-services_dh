@@ -21,7 +21,6 @@ class MainViewModel : ViewModel() {
 
     var dataCharacters = MutableLiveData<ArrayList<Int>>()
 
-    //    var dataPaginas = MutableLiveData<HashMap<Int, Pagina?>>()
     private var dataPaginas = Collections.synchronizedMap(hashMapOf<Int, Pagina?>())
 
     private val hqLoadListener = Collections.synchronizedMap(hashMapOf<Int, BiConsumer<Int, HQ>>())
@@ -63,7 +62,7 @@ class MainViewModel : ViewModel() {
                     charData.results.forEach { char ->
                         dataCharacters.value?.add(char.id)
                         while (dataCharacters.value?.size!! > 10) {
-                            dataCharacters.value?.removeFirst()
+                            dataCharacters.value?.removeLast()
                         }
                     }
                     if (charData.offset + charData.count < charData.total) {
@@ -97,7 +96,6 @@ class MainViewModel : ViewModel() {
 
     private fun loadComicsPage(page: Int, callback: Consumer<Int> = Consumer {}) {
         try {
-//            dataPaginas.value?.put(page, null)
             synchronized(dataPaginas) {
                 dataPaginas[page] = null
             }
@@ -122,14 +120,38 @@ class MainViewModel : ViewModel() {
                                         "http://",
                                         "https://"
                                     )
-                                titulo = comic.title
-//                                descricao = comic.description
-                                dataPublicacao = comic.dates.first().date
-//                                preco = comic.prices.first().price
-                                paginas = comic.pageCount
+                                try {
+                                    titulo = comic.title
+                                } catch (ex: Exception) {
+                                    titulo = ""
+                                }
+                                try {
+                                    descricao = comic.description
+                                } catch (ex: Exception) {
+                                    descricao = ""
+                                }
+
+                                try {
+                                    dataPublicacao = comic.dates.find { cd ->
+                                        cd.type.equals("onsaledate", ignoreCase = true)
+                                    }?.date.toString()
+
+
+                                } catch (ex: Exception) {
+                                    dataPublicacao = ""
+                                }
+                                try {
+                                    preco = comic.prices.first().price
+                                } catch (ex: Exception) {
+                                    preco = ""
+                                }
+                                try {
+                                    paginas = comic.pageCount
+                                } catch (ex: Exception) {
+                                    paginas = 0
+                                }
                             })
                         }
-//                        dataPaginas.value?.put(page, pag)
                         synchronized(dataPaginas) {
                             dataPaginas[page] = pag
                         }
@@ -174,15 +196,7 @@ class MainViewModel : ViewModel() {
         }
 
         range.forEach { p ->
-//            if (!dataPaginas.value?.containsKey(p)!!) {
-//                loadComicsPage(p)
-//            }
-
             if (!synchronized(dataPaginas) { dataPaginas.containsKey(p) }) {
-                Log.i(
-                    "MainViewModel",
-                    "Carregando pagina '$p' / Paginas carregadas: '${synchronized(dataPaginas) { dataPaginas.size }}'"
-                )
                 loadComicsPage(p) { loadedPage ->
                     if (synchronized(loadedPages) {
                             loadedPages.add(loadedPage)
@@ -218,12 +232,6 @@ class MainViewModel : ViewModel() {
             }
         }
 
-    }
-
-    fun getPaginas(callback: Consumer<MutableSet<MutableMap.MutableEntry<Int, Pagina?>>>) {
-        synchronized(dataPaginas) {
-            callback.accept(dataPaginas.entries)
-        }
     }
 
     fun getHQInPosition(position: Int): HQ? {
